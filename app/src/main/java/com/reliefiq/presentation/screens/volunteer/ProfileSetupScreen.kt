@@ -1,6 +1,7 @@
 package com.reliefiq.presentation.screens.volunteer
 
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.reliefiq.presentation.components.GradientButton
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProfileSetupScreen(
     onNavigateToHome: () -> Unit

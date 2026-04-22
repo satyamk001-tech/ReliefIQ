@@ -2,6 +2,7 @@ package com.reliefiq.presentation.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -15,9 +16,7 @@ fun LottieLoader(
     animationResId: Int? = null,
     assetName: String = "loading.json" // Placeholder
 ) {
-    // Note: Since we don't have actual raw res files or assets provided,
-    // this acts as a wrapper that would normally load a Lottie animation.
-    
+    // Attempt to load Lottie composition, but handle the case where assets are missing
     val composition by rememberLottieComposition(
         spec = if (animationResId != null) {
             LottieCompositionSpec.RawRes(animationResId)
@@ -26,16 +25,25 @@ fun LottieLoader(
         }
     )
     
-    val progress by animateLottieCompositionAsState(
-        composition = composition,
-        iterations = LottieConstants.IterateForever
-    )
-
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        LottieAnimation(
+    if (composition != null) {
+        val progress by animateLottieCompositionAsState(
             composition = composition,
-            progress = { progress },
-            modifier = Modifier.size(100.dp)
+            iterations = LottieConstants.IterateForever
         )
+
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            LottieAnimation(
+                composition = composition,
+                progress = { progress },
+                modifier = Modifier.size(100.dp)
+            )
+        }
+    } else {
+        // Fallback to a standard progress indicator if the Lottie asset is missing
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(48.dp)
+            )
+        }
     }
 }

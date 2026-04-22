@@ -3,9 +3,13 @@ package com.reliefiq.data.local.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.reliefiq.data.local.entities.TaskEntity
-import com.reliefiq.data.local.entities.VolunteerEntity
-import com.reliefiq.data.local.entities.ReportEntity
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "tasks") data class TaskEntity(@PrimaryKey val id: String)
+@Entity(tableName = "volunteers") data class VolunteerEntity(@PrimaryKey val id: String)
+@Entity(tableName = "reports") data class ReportEntity(@PrimaryKey val id: String)
 
 @Database(
     entities = [TaskEntity::class, VolunteerEntity::class, ReportEntity::class],
@@ -19,15 +23,7 @@ abstract class ReliefIQDatabase : RoomDatabase() {
     abstract fun reportDao(): ReportDao
 }
 
-// Dummy DAOs and Entities to compile DatabaseModule
-import androidx.room.Dao
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
+// Dummy DAOs to compile DatabaseModule
 @Dao interface TaskDao
 @Dao interface VolunteerDao
 @Dao interface ReportDao
-
-@Entity(tableName = "tasks") data class TaskEntity(@PrimaryKey val id: String)
-@Entity(tableName = "volunteers") data class VolunteerEntity(@PrimaryKey val id: String)
-@Entity(tableName = "reports") data class ReportEntity(@PrimaryKey val id: String)
