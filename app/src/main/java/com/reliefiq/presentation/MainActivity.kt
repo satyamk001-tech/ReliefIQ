@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.reliefiq.core.security.SecureStorage
 import com.reliefiq.presentation.components.AnimatedBottomNav
 import com.reliefiq.presentation.components.BottomNavItem
 import com.reliefiq.presentation.screens.auth.BiometricScreen
@@ -35,11 +36,16 @@ import com.reliefiq.presentation.screens.volunteer.TaskDetailScreen
 import com.reliefiq.presentation.screens.volunteer.TaskListScreen
 import com.reliefiq.presentation.theme.ReliefIQTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var secureStorage: SecureStorage
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         
         setContent {
@@ -80,11 +86,41 @@ class MainActivity : ComponentActivity() {
                         startDestination = "splash",
                         modifier = Modifier.padding(padding)
                     ) {
-                        composable("splash") { SplashScreen({ navController.navigate("onboarding") }, { navController.navigate("task_list") }, false) }
+                        composable("splash") { 
+                            SplashScreen(
+                                onNavigateToOnboarding = { navController.navigate("onboarding") },
+                                onNavigateToHome = { 
+                                    val role = secureStorage.getUserRole()
+                                    if (role == "volunteer") navController.navigate("task_list")
+                                    else navController.navigate("dashboard")
+                                },
+                                isLoggedIn = secureStorage.isDemoMode() || secureStorage.getUserRole() != null
+                            ) 
+                        }
                         composable("onboarding") { OnboardingScreen { navController.navigate("login") } }
-                        composable("login") { LoginScreen({ navController.navigate("register") }, { navController.navigate("task_list") }, { navController.navigate("biometric") }, true) }
+                        composable("login") { 
+                            LoginScreen(
+                                onNavigateToRegister = { navController.navigate("register") },
+                                onNavigateToHome = { 
+                                    val role = secureStorage.getUserRole()
+                                    if (role == "volunteer") navController.navigate("task_list")
+                                    else navController.navigate("dashboard")
+                                },
+                                onNavigateToBiometric = { navController.navigate("biometric") },
+                                isBiometricEnrolled = secureStorage.isBiometricEnabled()
+                            ) 
+                        }
                         composable("register") { RegisterScreen({ navController.navigate("profile_setup") }, { navController.navigate("dashboard") }, { navController.navigate("login") }) }
-                        composable("biometric") { BiometricScreen({ navController.navigate("task_list") }, { navController.navigate("login") }) }
+                        composable("biometric") { 
+                            BiometricScreen(
+                                onNavigateToHome = { 
+                                    val role = secureStorage.getUserRole()
+                                    if (role == "volunteer") navController.navigate("task_list")
+                                    else navController.navigate("dashboard")
+                                },
+                                onNavigateToLogin = { navController.navigate("login") }
+                            ) 
+                        }
                         
                         composable("profile_setup") { ProfileSetupScreen { navController.navigate("task_list") } }
                         composable("task_list") { TaskListScreen({ taskId -> navController.navigate("task_detail/$taskId") }, { navController.navigate("sos") }) }

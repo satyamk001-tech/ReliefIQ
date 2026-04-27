@@ -71,6 +71,14 @@ class SecureStorage @Inject constructor(
         return getPrefs().getLong("last_active_time", 0L)
     }
 
+    fun setDemoMode(enabled: Boolean) {
+        getPrefs().edit().putBoolean("is_demo_mode", enabled).apply()
+    }
+
+    fun isDemoMode(): Boolean {
+        return getPrefs().getBoolean("is_demo_mode", false)
+    }
+
     fun clearAll() {
         getPrefs().edit().clear().apply()
     }

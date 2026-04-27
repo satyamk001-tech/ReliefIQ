@@ -20,13 +20,35 @@ class AuthViewModel @Inject constructor(
     private val secureStorage: SecureStorage
 ) : ViewModel() {
 
-    private val _authState = MutableStateFlow<Resource<Boolean>>(Resource.Success(auth.currentUser != null))
+    private val _authState = MutableStateFlow<Resource<Boolean>>(
+        if (secureStorage.isDemoMode()) Resource.Success(true) 
+        else Resource.Success(auth.currentUser != null)
+    )
     val authState: StateFlow<Resource<Boolean>> = _authState.asStateFlow()
 
     fun login(email: String, pass: String) {
         _authState.value = Resource.Loading
+        
+        // Demo Account Bypass
+        if (email.lowercase() == "volunteer@demo.com" && pass == "password123") {
+            secureStorage.setDemoMode(true)
+            secureStorage.saveUserRole("volunteer")
+            secureStorage.updateLastActiveTime(System.currentTimeMillis())
+            _authState.value = Resource.Success(true)
+            return
+        }
+        
+        if (email.lowercase() == "admin@demo.com" && pass == "password123") {
+            secureStorage.setDemoMode(true)
+            secureStorage.saveUserRole("ngo_admin")
+            secureStorage.updateLastActiveTime(System.currentTimeMillis())
+            _authState.value = Resource.Success(true)
+            return
+        }
+
         auth.signInWithEmailAndPassword(email, pass)
             .addOnSuccessListener {
+                secureStorage.setDemoMode(false)
                 secureStorage.updateLastActiveTime(System.currentTimeMillis())
                 _authState.value = Resource.Success(true)
             }
@@ -44,6 +66,7 @@ class AuthViewModel @Inject constructor(
                     viewModelScope.launch {
                         authRepository.setCustomRole(uid, role)
                         secureStorage.saveUserRole(role)
+                        secureStorage.setDemoMode(false)
                         _authState.value = Resource.Success(true)
                     }
                 }
